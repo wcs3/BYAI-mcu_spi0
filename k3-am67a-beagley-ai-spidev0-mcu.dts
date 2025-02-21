@@ -37,6 +37,8 @@
         status = "okay";
         pinctrl-names = "default";
         pinctrl-0 = <&mcu_spi0_pins_default>;
+        #address-cells = <1>;
+        #size-cells = <0>;
         ti,spi-num-cs = <2>;
         ti,pindir-d0-out-d1-in;
 
