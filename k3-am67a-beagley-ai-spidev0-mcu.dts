@@ -1,0 +1,54 @@
+/*
+ * Copyright 2025 William Schmidt
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/MIT.
+ */ 
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include "k3-pinctrl.h"
+
+/*
+ * Helper to show loaded overlays under: /proc/device-tree/chosen/overlays/
+ */
+&{/chosen} {
+        overlays {
+                k3-am67a-beagley-ai-spidev0-mcu.kernel = __TIMESTAMP__;
+        };
+};
+
+&mcu_pmx0 {
+        mcu_spi0_pins_default: mcu-spi0-default-pins {
+                pinctrl-single,pins = <
+                        J722S_MCU_IOPAD(0x0000, PIN_OUTPUT, 0) /* (C12) MCU_SPI0_CS0 */
+                        J722S_MCU_IOPAD(0x0024, PIN_OUTPUT, 2) /* (B3) MCU_SPI0_CS2 */
+                        J722S_MCU_IOPAD(0x0008, PIN_OUTPUT, 0) /* (A9) MCU_SPI0_CLK */
+                        J722S_MCU_IOPAD(0x000C, PIN_OUTPUT, 0) /* (B12) MCU_SPI0_D0 */
+                        J722S_MCU_IOPAD(0x0010, PIN_INPUT, 0)  /* (C11) MCU_SPI0_D1 */
+                >;
+                bootph-all;
+        };
+};
+
+&mcu_spi0 {
+        status = "okay";
+        pinctrl-names = "default";
+        pinctrl-0 = <&mcu_spi0_pins_default>;
+        ti,spi-num-cs = <2>;
+        ti,pindir-d0-out-d1-in;
+
+        spidev@0 {
+                spi-max-frequency = <50000000>;
+                reg = <0>;
+                compatible = "rohm,dh2228fv";
+        };
+
+        spidev@1 {
+                spi-max-frequency = <50000000>;
+                reg = <1>;
+                compatible = "rohm,dh2228fv";
+        };
+};
