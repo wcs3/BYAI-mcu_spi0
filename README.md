@@ -17,7 +17,7 @@ Copy the provided overlay file [`k3-am67a-beagley-ai-spidev0-mcu.dts`]() into th
 ## 2. Changing the spi0 Device-Tree Alias
 The additional custom overlay file is enough to get the `mcu_spi0` peripheral working in place of the bitbanged spi. However, if you install the device tree as is, you will find that `mcu_spi0` gets assigned the devices `spidev1.0` and `spidev1.1` instead of the expected  `spidev0.0` and  `spidev0.1`. This is ultimately not a huge problem since those devices will still function properly in spite of their indices, but there is a fix for it.
 
-It appears that a lingering reference in the device-tree keeps `spidev0` reserved to the bitbanged spi even though it isn't actually bound with any device. To fix this, we will need to modify the main device-tree source file `src/arm64/ti/k3-am67a-beagley-ai.dts`.
+It appears that a lingering reference in the device-tree keeps `spidev0` reserved to the bitbanged spi even though it isn't actually bound with any device. To fix this, we will need to modify the main device-tree source file [`src/arm64/ti/k3-am67a-beagley-ai.dts`]().
 Open your copy of this file in a text editor and go to the section under `aliases`. This should be near the top of the file. In this section, change the line `spi0 = &spi_gpio` to `spi0 = &mcu_spi0`:
 ```
 // DEVICE-TREE_SOURCE_ROOT/src/arm64/ti/k3-am67a-beagley-ai.dts
