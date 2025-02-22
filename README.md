@@ -1,5 +1,5 @@
 # BYAI-mcu_spi0
-Out of the box, the BeagleY-AI's spi0 device is driven by an `spi-gpio` device (a bitbanged spi). This is a problem for SPI peripherals that require fast comms (displays, ADCs, etc.) since the bitbanged spi is limited to ~1MHz. Fortunately, these bitbanged spi0 pins are backed by an actual hardware SPI peripheral: `mcu_spi0`. This  guide shows how to activate it.
+Out of the box, the BeagleY-AI's spi0 device is driven by an `spi-gpio` device (a bitbanged spi). This is a problem for SPI peripherals that require fast comms (displays, ADCs, etc.) since the bitbanged spi is limited to ~1MHz. Fortunately, these bitbanged spi0 pins just so happen to be backed by an actual hardware SPI peripheral: `mcu_spi0`. This  guide shows how to activate it.
 
 ## Prerequisites
 This guide was tested on a BeagleY-AI board running the 6.1.83-ti-arm64-r67 kernel version.
