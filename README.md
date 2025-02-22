@@ -74,7 +74,7 @@ $ ls /dev/spidev*
 ```
 shows two devices named `spidev0.0` and `spidev0.1`.
 
-## Notes
+## Appendix
 `spidev` devices are by default limited to transferring 4096 bytes at a time. Some transfers, like flushing frames to an LCD, require a much larger transfer size. The obvious workaround is to split up large transfers into many smaller transfers. The downside to this approach is that there may be some non-negligible overhead in setting up each individual transfer, which is something we would hope to avoid if we wish to squeeze the most performance out of the SPI peripheral. Instead, we can just configure the `spidev` limit to our desired value.
 
 To change the transfer limit of `spidev` devices, open the file `/boot/firmware/extlinux/extlinux.conf` and edit the line in the last section beginning with `append`:
