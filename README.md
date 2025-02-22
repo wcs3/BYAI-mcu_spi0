@@ -97,3 +97,15 @@ After making the above change, save the file and reboot your board. You can veri
 ```
 $ cat /sys/module/spidev/parameter/bufsiz
 ```
+## Resources
+[AM67x Processors datasheet](https://www.ti.com/lit/ds/symlink/am67a.pdf?ts=1740114925407&ref_url=https%253A%252F%252Fpinout.beagleboard.io%252F)
+
+[SPI Enablement and Validation on TDA4 Family](https://www.ti.com/lit/an/sprad26/sprad26.pdf?ts=1740138654464&ref_url=https%253A%252F%252Fwww.ti.com%252Fproduct%252FAM67)
+
+[devicetree Specification](https://www.devicetree.org/specifications/)
+
+[BeagleY-AI Pinout](https://pinout.beagley.ai/)
+
+[BeagleBoard Device-Tree Source](https://git.beagleboard.org/beagleboard/BeagleBoard-DeviceTrees)
+
+[Configuring spidev.bufsiz on Raspberry Pi](https://forums.raspberrypi.com/viewtopic.php?t=124472)
