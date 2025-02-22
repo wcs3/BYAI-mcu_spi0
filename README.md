@@ -73,3 +73,22 @@ and verify that
 $ ls /dev/spidev*
 ```
 shows two devices named `spidev0.0` and `spidev0.1`.
+
+## Notes
+`spidev` devices are by default limited to transferring 4096 bytes at a time. Some transfers, like flushing frames to an LCD, require a much larger trasnfer size. The obvious workaround is to split up large transfers into many smaller transfers, but the downside to this approach is that there may be some non-negligible overhead in setting up each individual transfer that we would hope to avoid. Instead, we can just configure the `spidev` limit to our desired value.
+
+To change the transfer limit of `spidev` devices, open the file `/boot/firmware/extlinux/extlinux.conf` and edit the line in the last section beginning with `append`:
+```
+// /boot/firmware/extlinux/extlinux.conf
+...
+label microSD (default)
+  kernel /Image
+--append console=ttyS2,115200n8 root=/dev/mmcblk1p3 ro rootfstype=ext4 resume=/dev/mmcblk1p2 rootwait net.ifnames=0 quiet
+++append console=ttyS2,115200n8 root=/dev/mmcblk1p3 ro rootfstype=ext4 resume=/dev/mmcblk1p2 rootwait net.ifnames=0 quiet spidev.bufsiz=<NEW_SPIDEV_LIMIT>
+  fdtdir /
+  fdt /ti/k3-am67a-beagley-ai.dtb
+  fdtoverlays
+  fdtoverlays /overlays/k3-am67a-beagley-ai-spidev0-mcu.dtbo
+  initrd /initrd.img
+```
+Replace `<NEW_SPIDEV_LIMIT>` with your desired value. I'm not sure if there is a hardware limit to how big you can make the transfer size, but I have at least tested it up to 2^17 bytes (enough to transfer a whole frame of a 240x240 16-bit color display).
