@@ -75,7 +75,7 @@ $ ls /dev/spidev*
 shows two devices named `spidev0.0` and `spidev0.1`.
 
 ## Notes
-`spidev` devices are by default limited to transferring 4096 bytes at a time. Some transfers, like flushing frames to an LCD, require a much larger trasnfer size. The obvious workaround is to split up large transfers into many smaller transfers, but the downside to this approach is that there may be some non-negligible overhead in setting up each individual transfer that we would hope to avoid. Instead, we can just configure the `spidev` limit to our desired value.
+`spidev` devices are by default limited to transferring 4096 bytes at a time. Some transfers, like flushing frames to an LCD, require a much larger trasnfer size. The obvious workaround is to split up large transfers into many smaller transfers. The downside to this approach is that there may be some non-negligible overhead in setting up each individual transfer, which is something we would hope to avoid if we wish to squeeze the most performance from the display. Instead, we can just configure the `spidev` limit to our desired value.
 
 To change the transfer limit of `spidev` devices, open the file `/boot/firmware/extlinux/extlinux.conf` and edit the line in the last section beginning with `append`:
 ```
@@ -91,4 +91,9 @@ label microSD (default)
   fdtoverlays /overlays/k3-am67a-beagley-ai-spidev0-mcu.dtbo
   initrd /initrd.img
 ```
-Replace `<NEW_SPIDEV_LIMIT>` with your desired value. I'm not sure if there is a hardware limit to how big you can make the transfer size, but I have at least tested it up to 2^17 bytes (enough to transfer a whole frame of a 240x240 16-bit color display).
+Replace `<NEW_SPIDEV_LIMIT>` with your desired value. I'm not sure if there is an eventual hardware limit to the transfer size, but I have at least tested it up to 2^17 = 131072 bytes (enough to transfer a whole frame of a 240x240 16-bit color display).
+
+After making the above change, save the file and reboot your board. You can verify that the change applied by checking the output of
+```
+$ cat /sys/module/spidev/parameter/bufsiz
+```
