@@ -1,5 +1,5 @@
 # BYAI-mcu_spi0
-Out of the box, the BeagleY-AI's spi0 device is driven by an `spi-gpio` device (a bitbanged spi). This is a problem for SPI peripherals that require fast comms (displays, ADCs, etc.) since the bitbanged spi is limited to ~1MHz. Fortunately, these bitbanged spi0 pins just so happen to be backed by an actual hardware SPI peripheral: `mcu_spi0`. This  guide shows how to activate it.
+Out of the box, the BeagleY-AI's spi0 device is driven by an `spi-gpio` driver (a bitbanged spi). This is a problem for SPI peripherals that require fast comms (displays, ADCs, etc.) since the bitbanged spi is limited to ~1MHz. Fortunately, these bitbanged spi0 pins just so happen to be backed by an actual hardware SPI peripheral: `mcu_spi0`. This guide shows how to activate it.
 
 ## Prerequisites
 This guide was tested on a BeagleY-AI board running the 6.1.83-ti-arm64-r67 kernel version.
@@ -15,10 +15,32 @@ Configuring the `mcu_spi0` peripheral with an associated `spidev` device require
 Copy the provided overlay file [`k3-am67a-beagley-ai-spidev0-mcu.dts`](/k3-am67a-beagley-ai-spidev0-mcu.dts) into the `src/arm64/overlays/` directory of your copy of the device-tree source.
 
 ## 2. Changing the spi0 Device-Tree Alias
-The additional custom overlay file is enough to get the `mcu_spi0` peripheral working in place of the bitbanged spi. However, if you install the device tree as is, you will find that `mcu_spi0` gets assigned the devices `spidev1.0` and `spidev1.1` instead of the expected  `spidev0.0` and  `spidev0.1`. This is ultimately not a huge problem since those devices will still function properly in spite of their indices, but there is a fix for it.
+The additional custom overlay file is enough to get the `mcu_spi0` peripheral working in place of the bitbanged spi. However, if you install the device tree as is, you will find that `mcu_spi0` gets assigned `spidev1` (spi bus number 1) instead of the expected `spidev0` (bus number 0). This is ultimately not a huge problem since those devices will still function properly in spite of their bus numbers, but since we wish to retain the original behavior of the spi configuration, we will fix it.
 
-It appears that a lingering reference in the device-tree keeps `spidev0` reserved to the bitbanged spi even though it isn't actually bound with any device. To fix this, we will need to modify the main device-tree source file [`src/arm64/ti/k3-am67a-beagley-ai.dts`](/src/arm64/ti/k3-am67a-beagley-ai.dts).
-Open your copy of the source file in a text editor and go to the section under `aliases`. This should be near the top of the file. In this section, change the line `spi0 = &spi_gpio` to `spi0 = &mcu_spi0`:
+If you open the main device-tree source file [`src/arm64/ti/k3-am67a-beagley-ai.dts`](/src/arm64/ti/k3-am67a-beagley-ai.dts) in a text editor and go to the section under `aliases`, you'll notice the line `spi0 = &spi_gpio`:
+```
+// DEVICE-TREE_SOURCE_ROOT/src/arm64/ti/k3-am67a-beagley-ai.dts
+  ...
+  aliases {
+    serial0 = &wkup_uart0;
+    serial2 = &main_uart0;
+    serial3 = &main_uart1;
+    serial6 = &main_uart6;
+    mmc1 = &sdhci1;
+    mmc2 = &sdhci2;
+    rtc0 = &rtc;
+    spi0 = &spi_gpio;
+    usb0 = &usb0;
+    usb1 = &usb1;
+    i2c1 = &mcu_i2c0;
+  };
+  ...
+```
+This is the cause of our problem. When assigning bus numbers to SPI controllers, the [linux spi driver](https://github.com/torvalds/linux/blob/27102b38b8ca7ffb1622f27bcb41475d121fb67f/drivers/spi/spi.c#L3262) checks the device-tree aliases to see if there exists a `spi<n>` alias for the controller. If there is a `spi<n>` alias for the controller, then the controller is assigned bus number `n`. If there is no `spi<n>` alias for the controller, then the controller gets the bus number `1 + max(highest n of spi<n> aliases, highest assigned bus number)`. 
+
+Since `spi_gpio` has alias `spi0`, bus number 0 will always be reserved for it. OTOH, `mcu_spi0` currently doesn't have an alias, and no other controllers are registered, so it gets bus number 1.
+
+Thus, the fix is to simply update the `spi0` alias. Open your copy of the file [`src/arm64/ti/k3-am67a-beagley-ai.dts`](/src/arm64/ti/k3-am67a-beagley-ai.dts) in a text editor and change the offending line to `spi0 = &mcu_spi0`:
 ```
 // DEVICE-TREE_SOURCE_ROOT/src/arm64/ti/k3-am67a-beagley-ai.dts
   ...
@@ -38,7 +60,7 @@ Open your copy of the source file in a text editor and go to the section under `
   };
   ...
 ```
-Now save and close the file.
+Save and close the file.
 
 ## 3. Building and Installing the Modified Device-Tree
 Change your working directory to the root of the device-tree source.
@@ -97,7 +119,7 @@ After making the above change, save the file and reboot your board. You can veri
 ```
 $ cat /sys/module/spidev/parameter/bufsiz
 ```
-## Resources
+## References
 [AM67x Processors datasheet](https://www.ti.com/lit/ds/symlink/am67a.pdf?ts=1740114925407&ref_url=https%253A%252F%252Fpinout.beagleboard.io%252F)
 
 [SPI Enablement and Validation on TDA4 Family](https://www.ti.com/lit/an/sprad26/sprad26.pdf?ts=1740138654464&ref_url=https%253A%252F%252Fwww.ti.com%252Fproduct%252FAM67)
