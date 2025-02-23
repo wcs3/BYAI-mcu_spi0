@@ -37,7 +37,7 @@
         status = "okay";
         pinctrl-names = "default";
         pinctrl-0 = <&mcu_spi0_pins_default>;
-        ti,spi-num-cs = <2>;
+        ti,spi-num-cs = <3>;
 
         // Need these lines to get rid of dtc warnings
         #address-cells = <1>;
