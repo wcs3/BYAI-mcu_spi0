@@ -21,7 +21,7 @@
 };
 
 &{/} }
-        // Override the spi0 alias to ensure that mcu_spi0 is bound to spidev0.
+        // Override the spi0 alias to ensure that mcu_spi0 is assigned spidev0.
         // Originally, spi_gpio is aliased to spi0, so mcu_spi0 would get spidev1.
         aliases {
                 spi0 = <&mcu_spi0>;
