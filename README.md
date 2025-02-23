@@ -17,7 +17,7 @@ Copy the provided overlay file [`k3-am67a-beagley-ai-spidev0-mcu.dts`](/k3-am67a
 ## 2. Changing the spi0 Device-Tree Alias
 The additional custom overlay file is enough to get the `mcu_spi0` peripheral working in place of the bitbanged spi. However, if you install the device tree as is, you will find that `mcu_spi0` gets assigned `spidev1` (spi bus number 1) instead of the expected `spidev0` (bus number 0). This is ultimately not a huge problem since those devices will still function properly in spite of their bus numbers, but since we wish to retain the original behavior of the spi configuration, we will fix it.
 
-If you open the main device-tree source file [`src/arm64/ti/k3-am67a-beagley-ai.dts`](/src/arm64/ti/k3-am67a-beagley-ai.dts) in a text editor and go to the section under `aliases`, you'll notice the line `spi0 = &spi_gpio`:
+If you open the main device-tree source file `src/arm64/ti/k3-am67a-beagley-ai.dts` in a text editor and go to the section under `aliases`, you'll notice the line `spi0 = &spi_gpio`:
 ```
 // DEVICE-TREE_SOURCE_ROOT/src/arm64/ti/k3-am67a-beagley-ai.dts
   ...
@@ -36,11 +36,11 @@ If you open the main device-tree source file [`src/arm64/ti/k3-am67a-beagley-ai.
   };
   ...
 ```
-This is the cause of our problem. When assigning bus numbers to SPI controllers, the [linux spi driver](https://github.com/torvalds/linux/blob/27102b38b8ca7ffb1622f27bcb41475d121fb67f/drivers/spi/spi.c#L3262) checks the device-tree aliases to see if there exists a `spi<n>` alias for the controller. If there is a `spi<n>` alias for the controller, then the controller is assigned bus number `n`. If there is no `spi<n>` alias for the controller, then the controller gets the bus number `1 + max(highest n of spi<n> aliases, highest assigned bus number)`. 
+This is the cause of our problem. When assigning bus numbers to SPI controllers, the [linux spi driver](https://github.com/torvalds/linux/blob/27102b38b8ca7ffb1622f27bcb41475d121fb67f/drivers/spi/spi.c#L3281) checks the device-tree aliases to see if there exists a `spi<n>` alias for the controller. If there is a `spi<n>` alias for the controller, then the controller is assigned bus number `n`. If there is no `spi<n>` alias for the controller, then the controller gets the bus number `1 + max(highest n of spi<n> aliases, highest assigned bus number)`. 
 
 Since `spi_gpio` has alias `spi0`, bus number 0 will always be reserved for it. OTOH, `mcu_spi0` currently doesn't have an alias, and no other controllers are registered, so it gets bus number 1.
 
-Thus, the fix is to simply update the `spi0` alias. Open your copy of the file [`src/arm64/ti/k3-am67a-beagley-ai.dts`](/src/arm64/ti/k3-am67a-beagley-ai.dts) in a text editor and change the offending line to `spi0 = &mcu_spi0`:
+Thus, the fix is to simply update the `spi0` alias. Open your copy of the file `src/arm64/ti/k3-am67a-beagley-ai.dts` in a text editor and change the offending line to `spi0 = &mcu_spi0`:
 ```
 // DEVICE-TREE_SOURCE_ROOT/src/arm64/ti/k3-am67a-beagley-ai.dts
   ...
