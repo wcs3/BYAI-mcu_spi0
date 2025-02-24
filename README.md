@@ -120,6 +120,16 @@ After making the above change, save the file and reboot your board. You can veri
 ```
 $ cat /sys/module/spidev/parameter/bufsiz
 ```
+
+### Interword Delay
+If you set the spi clock speed to say 48MHz, you would expect a byte throughput of 48MHz/8 = 6 million bytes / sec. What you will instead find is that the actual byte throughput is roughly half that. This is due to a synchronization delay being inserted between each byte being transferred. Though each byte itself is transferred at the set clock speed, the interword delay results in an overall decreased throughput. 
+
+A [suggested method](https://e2e.ti.com/support/processors-group/processors/f/processors-forum/1356551/faq-am6x-optimizing-spi-transfer-inter-byte-gaps-using-the-dma-in-linux) to decrease this delay is to configure the SPI controller to use DMA. Unfortunately, it appears that only the `main_spi*` controllers can be configured to use DMA, so we can't use this method for `mcu_spi0`.
+
+My suggestion to optimizing the interword delay is to conduct transfers with larger words. Consider a scenario where we want to transmit a 16-byte buffer. If we do this with 8-bit words, then 16 words are needed for the 8-byte buffer, incurring 15 interword delays. OTOH, with 32-bit words, only 4 words are needed for the 16-bytes, so there would only be 3 delays. I found that the interword delay is roughly equal to the transmission time of an 8-bit word, or 8 spi clock cycles. So with 8-bit words and a clock frequency of 48MHz, a 16-byte transfer would take `8*(16+15)/48000000 = 5.17uS`. With 16-bit words, it would take `8*(16+7)/48000000 = 3.83uS`, and with 32-bit words, only `8*(16+3)/48000000 = 3.17uS`. 
+
+The problem with changing the transfer word-size is alignment and byte-ordering. Your buffer size must be divisible by the word size, otherwise you will have to split off the remainder into a seperate transfer at a smaller word size. Moreover, you must take care to set up your data in the transfer buffer so that when it is transferred with larger words, the byte ordering at the receiver is still correct.   
+
 ## References
 [AM67x Processors datasheet](https://www.ti.com/lit/ds/symlink/am67a.pdf?ts=1740114925407&ref_url=https%253A%252F%252Fpinout.beagleboard.io%252F)
 
