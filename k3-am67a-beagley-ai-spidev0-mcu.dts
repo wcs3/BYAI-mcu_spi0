@@ -53,12 +53,10 @@
                 compatible = "rohm,dh2228fv";
         };
 
-        // The pin that spi_gpio uses for chip-select 1 is mcu_spi0_cs2.
-        // To preserve the original behavior, we put spidev0.1 on mcu_spi0's chip-select 2
-        // (This mismatch between spidev and hardware chip-select indices causes dtc to throw a warning)
-        spidev@2 {        // mcu_spi0 chip-select 2
+        // The pin that spi_gpio uses for cs1 is mcu_spi0_cs2.
+        spidev@2 {
                 spi-max-frequency = <48000000>;
-                reg = <1>;        // spidev*.1
+                reg = <2>;
                 compatible = "rohm,dh2228fv";
         };
 };
