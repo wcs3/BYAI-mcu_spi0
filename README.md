@@ -15,7 +15,9 @@ Configuring the `mcu_spi0` peripheral with an associated `spidev` device require
 Copy the provided overlay file [`k3-am67a-beagley-ai-spidev0-mcu.dts`](/k3-am67a-beagley-ai-spidev0-mcu.dts) into the `src/arm64/overlays/` directory of your copy of the device-tree source.
 
 ## 2. Changing the spi0 Device-Tree Alias
-The additional custom overlay file is enough to get the `mcu_spi0` peripheral working in place of the bitbanged spi. However, if you install the device tree as is, you will find that `mcu_spi0` gets assigned `spidev1` (spi bus number 1) instead of the expected `spidev0` (bus number 0). This is ultimately not a huge problem since those devices will still function properly in spite of their bus numbers, but since we wish to retain the original behavior of the spi configuration, we will fix it.
+The additional custom overlay file is enough to get the `mcu_spi0` peripheral working in place of the bitbanged spi. However, if you install the device tree as is, you will find that `mcu_spi0` gets assigned `spidev1` (spi bus number 1) instead of the expected `spidev0` (bus number 0). This is ultimately not a huge problem since those devices will still function properly in spite of their bus numbers, but since we wish to retain as much of the behavior of the original spi configuration[^1], we will fix it.
+
+[^1]: The bitbanged spi driver shows its second spi channel, which maps to the chip-select 1 pin of the driver, as `spidev0.1`. However, the spi0 chip-select 1 pin on the byai is actually mcu_spi0 chip-select *2*. So, when we use the hardware `mcu_spi0` device, the second spi channel will show up at `spidev0.2` instead of `spidev0.1`. I've tried some things with the dt overlay to make the `mcu_spi0` configuration still show its second channel as `spidev0.1`, but it does not seem possible.
 
 If you open the main device-tree source file `src/arm64/ti/k3-am67a-beagley-ai.dts` in a text editor and go to the section under `aliases`, you'll notice the line `spi0 = &spi_gpio`:
 ```
@@ -62,6 +64,8 @@ Thus, the fix is to simply update the `spi0` alias. Open your copy of the file `
 ```
 Save and close the file.
 
+
+
 ## 3. Building and Installing the Modified Device-Tree
 Change your working directory to the root of the device-tree source.
 
@@ -94,7 +98,7 @@ and verify that
 ```
 $ ls /dev/spidev*
 ```
-shows two devices named `spidev0.0` and `spidev0.1`.
+shows two devices named `spidev0.0` and `spidev0.2`[^1].
 
 ## Appendix
 ### SPI Transfer Limit
