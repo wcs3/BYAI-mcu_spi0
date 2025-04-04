@@ -21,6 +21,10 @@
         };
 };
 
+&{/aliases} {
+        spi0 = <&mcu_spi0>;
+};
+
 &mcu_pmx0 {
         mcu_spi0_pins_default: mcu-spi0-default-pins {
                 pinctrl-single,pins = <
