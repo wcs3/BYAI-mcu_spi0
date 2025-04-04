@@ -60,9 +60,20 @@ and verify that
 ls /dev/spidev*
 ```
 
-shows two devices named `spidev0.0` and `spidev0.2`[^1].
+shows two devices named `spidev0.0` and `spidev0.2`.
 
 ## Appendix
+
+### Channel Numbering Compatibility
+
+This configuration aims to maintain compatibility with applications using the original `spi_gpio` configuration. For example, the provided device tree overlay overrides the spi alias in the base device tree so that `mcu_spi0` is assigned the same bus number previously used by `spi_gpio` (bus number 0).
+
+However, for applications that rely on the second channel of `spi_gpio`, there is a notable discrepancy:
+
+- `spi_gpio` uses `mcu_spi0`'s cs0 and cs2 chip select pins but remaps them such that cs0 corresponds to channel 0 and cs2 corresponds to channel 1. This results in the `spi_gpio`'s devices appearing as `spidev0.0` and `spidev0.1`.
+- With `mcu_spi0`, cs0 is similarly mapped to channel 0, but cs2 is mapped to channel 2. As a result, instead of `spidev0.0` and `spidev0.1`, `mcu_spi0` gets `spidev0.0` and `spidev0.2`.
+
+Despite attempts to modify the device tree to map cs2 to channel 1, it appears that spi peripherals adhere to a fixed chip select to channel mapping, such that chip select pin csX always corresponds to channel X. If you are unable to modify an application to conform to new mapping, an available workaround is to [create a `spidev0.1` symlink for `spidev0.2`](https://unix.stackexchange.com/questions/445450/how-to-create-a-permanent-symlink-to-a-device).
 
 ### SPI Transfer Limit
 
