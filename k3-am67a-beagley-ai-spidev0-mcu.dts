@@ -17,6 +17,7 @@
 &{/chosen} {
         overlays {
                 k3-am67a-beagley-ai-spidev0-mcu.kernel = __TIMESTAMP__;
+                mcu-mcspi0.4b00000.spi = "k3-am67a-beagley-ai-spi-mcu-mcspi0.4b00000";
         };
 };
 
